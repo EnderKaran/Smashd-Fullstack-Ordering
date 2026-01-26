@@ -6,13 +6,14 @@ import { Plus } from "lucide-react"
 import { ProductDrawer } from "./ProductDrawer"
 
 interface Product {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    image_url: string;
-    badge?: string; // Soru işareti 'opsiyonel' demek, her burgerin etiketi olmayabilir
-  }
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image_url: string;
+  badge?: string;
+  category_id: string;
+}
   
   // Props tipini tanımlıyoruz
   interface BurgerCardProps {
