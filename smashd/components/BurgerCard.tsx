@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
+import { ProductDrawer } from "./ProductDrawer"
 
 interface Product {
     id: string;
@@ -19,7 +20,8 @@ interface Product {
   }
 
   export function BurgerCard({ product }: BurgerCardProps) {
-  return (
+    return (
+      <ProductDrawer product={product}> 
     <Card className="overflow-hidden border-none shadow-lg rounded-3xl bg-white">
       <div className="relative aspect-square">
       <Image 
@@ -51,6 +53,7 @@ interface Product {
           <Plus className="w-6 h-6" />
         </Button>
       </CardFooter>
-    </Card>
+        </Card>
+        </ProductDrawer>
   )
 }
