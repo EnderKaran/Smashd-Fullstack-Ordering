@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { Suspense } from "react";
 import { BurgerCard } from "@/components/BurgerCard";
 import { CartTray } from "@/components/CartTray";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -44,7 +45,9 @@ export default async function MenuPage() {
       <MenuClient categories={categories || []} products={products || []} />
 
       {/* CANLI SEPET ÇEKMECESİ */}
-      <CartTray /> 
+      <Suspense fallback={<div className="fixed bottom-6 w-full text-center">Loading Tray...</div>}>
+        <CartTray />
+      </Suspense>
       
     </div>
   );

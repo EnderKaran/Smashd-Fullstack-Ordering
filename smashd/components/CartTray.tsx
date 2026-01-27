@@ -39,22 +39,23 @@ export function CartTray() {
   const total = subTotal + tax;
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
 
-  const [tableId, setTableId] = useState<string>("");
+  const [tableId, setTableId] = useState<string>("1");
 
     useEffect(() => {
+  if (typeof window !== "undefined") {
     const urlTable = searchParams.get('table');
+    const sessionTable = sessionStorage.getItem('temp_table');
+    
     if (urlTable) {
-        setTableId(urlTable);
+      setTableId(urlTable);
+    } else if (sessionTable) {
+      setTableId(sessionTable);
     } else {
-        const sessionTable = sessionStorage.getItem('temp_table');
-        if (sessionTable) {
-        setTableId(sessionTable);
-        } else {
-        const randomTable = Math.floor(Math.random() * 899 + 100).toString();
-        sessionStorage.setItem('temp_table', randomTable);
-        setTableId(randomTable);
-        }
+      const randomTable = Math.floor(Math.random() * 899 + 100).toString();
+      sessionStorage.setItem('temp_table', randomTable);
+      setTableId(randomTable);
     }
+  }
 }, [searchParams]);
 
   const handleCheckout = async () => {
