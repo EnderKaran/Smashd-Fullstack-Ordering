@@ -39,7 +39,23 @@ export function CartTray() {
   const total = subTotal + tax;
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
 
-  const tableId = searchParams.get('table') || '1';
+  const [tableId, setTableId] = useState<string>("");
+
+    useEffect(() => {
+    const urlTable = searchParams.get('table');
+    if (urlTable) {
+        setTableId(urlTable);
+    } else {
+        const sessionTable = sessionStorage.getItem('temp_table');
+        if (sessionTable) {
+        setTableId(sessionTable);
+        } else {
+        const randomTable = Math.floor(Math.random() * 899 + 100).toString();
+        sessionStorage.setItem('temp_table', randomTable);
+        setTableId(randomTable);
+        }
+    }
+}, [searchParams]);
 
   const handleCheckout = async () => {
     setIsSubmitting(true);
