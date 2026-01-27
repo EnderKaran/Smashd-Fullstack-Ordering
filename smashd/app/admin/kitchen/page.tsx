@@ -32,7 +32,7 @@ export default function KitchenPage() {
   useEffect(() => {
     fetchOrders();
 
-    // 3. REALTIME ABONELİĞİ (Sihir Burada!) ✨
+    // 3. REALTIME ABONELİĞİ
     const channel = supabase
       .channel("kitchen-orders")
       .on(
@@ -48,7 +48,6 @@ export default function KitchenPage() {
             toast.message("🔔 Yeni Sipariş!", { description: `Masa #${payload.new.table_id}` });
           } 
           else if (payload.eventType === "UPDATE") {
-            // Sipariş durumu değişti (örn: tamamlandı olduysa listeden sil)
             if (payload.new.status === "tamamlandi") {
               setOrders((prev) => prev.filter((o) => o.id !== payload.new.id));
             } else {
@@ -59,7 +58,6 @@ export default function KitchenPage() {
       )
       .subscribe();
 
-    // Temizlik: Sayfadan çıkınca aboneliği bitir
     return () => {
       supabase.removeChannel(channel);
     };
@@ -67,8 +65,6 @@ export default function KitchenPage() {
 
   // Sipariş Durumu Güncelleme Fonksiyonu
   const updateStatus = async (id: string, newStatus: string) => {
-    // İyimser Güncelleme (Optimistic Update): Önce arayüzü güncelle, sonra veritabanına yaz
-    // Bu sayede arayüz çok hızlı hissedilir.
     if (newStatus === "tamamlandi") {
         setOrders((prev) => prev.filter((o) => o.id !== id));
     } else {
@@ -103,7 +99,6 @@ export default function KitchenPage() {
           <p className="text-sm text-gray-400 font-medium">Live Orders Feed • {orders.length} Active</p>
         </div>
         <div className="flex gap-4">
-             {/* Buraya mutfak istatistikleri gelebilir */}
              <div className="bg-orange-100 px-4 py-2 rounded-xl text-orange-600 font-bold text-sm">
                 🔥 Busy Mode
              </div>
