@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabase";
-import { Suspense } from "react";
 import { BurgerCard } from "@/components/BurgerCard";
 import { CartTray } from "@/components/CartTray";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -32,7 +31,6 @@ export default async function MenuPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      {/* Üst Kısım: Başlık ve Açıklama */}
       <header className="p-6 pt-10">
         <h1 className="text-4xl font-black text-gray-900 tracking-tight">
           Signature Smashes <span className="text-orange-500">.</span>
@@ -42,13 +40,10 @@ export default async function MenuPage() {
         </p>
       </header>
 
-      <MenuClient categories={categories || []} products={products || []} />
+      <MenuClient categories={categories} products={products} />
 
-      {/* CANLI SEPET ÇEKMECESİ */}
-      <Suspense fallback={<div className="fixed bottom-6 w-full text-center">Loading Tray...</div>}>
-        <CartTray />
-      </Suspense>
-      
+      {/* CartTray artık kendi içinde Suspense barındırdığı için güvenli */}
+      <CartTray />
     </div>
   );
 }
