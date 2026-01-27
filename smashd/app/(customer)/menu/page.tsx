@@ -1,3 +1,4 @@
+//menu/page.tsx
 import { supabase } from "@/lib/supabase";
 import { BurgerCard } from "@/components/BurgerCard";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";

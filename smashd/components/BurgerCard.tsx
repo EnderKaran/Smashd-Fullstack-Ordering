@@ -1,3 +1,4 @@
+// components/BurgerCard.tsx
 import Image from 'next/image'
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
