@@ -1,6 +1,7 @@
 // app/layout.tsx
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import { Toaster } from "sonner"; // Bildirimleri ekrana basar
 
