@@ -1,10 +1,7 @@
 import { supabase } from "@/lib/supabase";
-import { BurgerCard } from "@/components/BurgerCard";
 import { CartTray } from "@/components/CartTray";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import MenuClient from "./MenuClient"; // <-- Client Component'i kullanacağız
+import MenuClient from "./MenuClient";
 
-// Tip tanımlamaları
 interface Product {
   id: string;
   name: string;
@@ -26,11 +23,13 @@ export default async function MenuPage() {
     supabase.from("products").select("*"),
   ]);
 
-  const categories = categoriesResponse.data as Category[];
-  const products = productsResponse.data as Product[];
+  // Data null gelirse uygulamanın çökmemesi için boş dizi gönderiyoruz
+  const categories = (categoriesResponse.data || []) as Category[];
+  const products = (productsResponse.data || []) as Product[];
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
+      {/* Sayfa başlığı */}
       <header className="p-6 pt-10">
         <h1 className="text-4xl font-black text-gray-900 tracking-tight">
           Signature Smashes <span className="text-orange-500">.</span>
@@ -40,9 +39,10 @@ export default async function MenuPage() {
         </p>
       </header>
 
+      {/* Hero Section ve Ürün Filtreleme */}
       <MenuClient categories={categories} products={products} />
 
-      {/* CartTray artık kendi içinde Suspense barındırdığı için güvenli */}
+      {/* Alt Sepet Çubuğu */}
       <CartTray />
     </div>
   );
