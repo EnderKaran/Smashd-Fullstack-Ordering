@@ -1,37 +1,56 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Performans için ikon ayarlarını bileşen dışına alıyoruz
-const customIcon = typeof window !== 'undefined' ? new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-}) : null;
+const getIcon = () => {
+  if (typeof window === 'undefined') return null;
+  return new L.Icon({
+    iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+  });
+};
 
 export default function MapComponent({ locations }: { locations: any[] }) {
-  const bursaCenter: [number, number] = [40.21, 28.96]; // Bursa merkez odaklı
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Hydration hatasını engellemek için mounted değilse hiçbir şey render etme
+  if (!isMounted) return null;
+
+  const bursaCenter: [number, number] = [40.218, 28.960];
+  const markerIcon = getIcon();
 
   return (
-    // ÖNEMLİ: h-full yerine doğrudan stil vermek bazen daha stabildir
-    <div style={{ height: '100%', width: '100%', background: '#f3f4f6' }}>
+    <div className="w-full h-full relative">
       <MapContainer 
+        key="smashd-bursa-map" // React'in bileşeni stabil tutması için key ekledik
         center={bursaCenter} 
         zoom={12} 
-        scrollWheelZoom={false} // Sayfa kaydırmayı zorlaştırmasın
-        style={{ height: '100%', width: '100%' }}
+        scrollWheelZoom={false}
+        className="w-full h-full"
+        style={{ minHeight: '100%' }} // Yükseklik hatasını önlemek için
       >
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" // Daha hafif ve hızlı bir harita stili
-          attribution='&copy; OpenStreetMap contributors'
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        
         {locations.map((loc) => (
-          customIcon && (
-            <Marker key={loc.id} position={loc.coords} icon={customIcon}>
-              <Popup>
-                <div className="font-bold text-gray-900">{loc.name}</div>
+          markerIcon && (
+            <Marker key={loc.id} position={loc.coords} icon={markerIcon}>
+              <Popup className="font-sans">
+                <div className="p-1">
+                  <p className="font-black text-gray-900 m-0">{loc.name}</p>
+                  <p className="text-[10px] text-orange-500 font-bold uppercase">Smash'd Burger Point</p>
+                </div>
               </Popup>
             </Marker>
           )
