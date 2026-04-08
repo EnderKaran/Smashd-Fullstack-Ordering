@@ -52,14 +52,72 @@ export default function KitchenPage() {
     return () => { supabase.removeChannel(channel); };
   }, [view]);
 
+  const deductInventory = async (orderItems: any[]) => {
+    try {
+      // 1. Depodaki mevcut stokları çek
+      const { data: inventoryData, error: fetchError } = await supabase.from('inventory').select('*');
+      if (fetchError || !inventoryData) throw fetchError;
+
+      let stockUpdates: any = {}; // Aynı malzemeden birden fazla düşülmesini önlemek için obje kullanıyoruz
+
+      // 2. Sipariş edilen ürünleri gez
+      for (const item of orderItems) {
+        // İsimde burger, smash veya stack geçiyorsa (Burger satıldı demektir)
+        if (item.name.toLowerCase().includes('burger') || item.name.toLowerCase().includes('smash') || item.name.toLowerCase().includes('stack') || item.name.toLowerCase().includes('melt')) {
+          const qty = item.quantity; // Kaç adet söylendiği
+
+          // Depodan düşülecek ürünleri bul (Veritabanındaki ismine göre)
+          const ekmek = inventoryData.find(inv => inv.item_name.includes('Ekmek'));
+          const kiyma = inventoryData.find(inv => inv.item_name.includes('Kıyma'));
+
+          if (ekmek) {
+            stockUpdates[ekmek.id] = (stockUpdates[ekmek.id] || ekmek.current_stock) - (1 * qty);
+          }
+          if (kiyma) {
+            stockUpdates[kiyma.id] = (stockUpdates[kiyma.id] || kiyma.current_stock) - (0.15 * qty); // Her burger 150 gram
+          }
+        }
+      }
+
+      // 3. Değişen stokları veritabanına kaydet
+      for (const [id, newStock] of Object.entries(stockUpdates)) {
+        await supabase.from('inventory').update({ current_stock: newStock }).eq('id', id);
+      }
+
+      console.log("✅ Otomatik stok düşümü tamamlandı.");
+    } catch (error) {
+      console.error("Stok düşme hatası:", error);
+    }
+  };
+
+  // 🔄 GÜNCEL UPDATE FONKSİYONU
   const updateStatus = async (id: string, currentStatus: string) => {
     let nextStatus = "hazirlaniyor";
     if (currentStatus === "hazirlaniyor") nextStatus = "hazir";
     else if (currentStatus === "hazir") nextStatus = "tamamlandi";
 
-    const { error } = await supabase.from("orders").update({ status: nextStatus }).eq("id", id);
-    if (error) toast.error("Update failed");
-    else fetchOrders();
+    const { error } = await supabase
+      .from("orders")
+      .update({ status: nextStatus })
+      .eq("id", id);
+
+    if (error) {
+      toast.error("Hata oluştu");
+      return;
+    } 
+    
+    // ✨ OTOMASYON TETİKLEYİCİSİ
+    if (nextStatus === "tamamlandi") {
+      // Önce siparişin içindeki ürünleri (items) bul
+      const { data: orderData } = await supabase.from("orders").select("items").eq("id", id).single();
+      
+      if (orderData && orderData.items) {
+        await deductInventory(orderData.items); // Stoktan düş!
+        toast.success("Sipariş tamamlandı ve stoktan düşüldü! 📦");
+      }
+    }
+
+    fetchOrders(); // Listeyi güncelle
   };
 
   return (
