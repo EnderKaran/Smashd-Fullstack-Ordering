@@ -1,6 +1,11 @@
 import Navbar from "@/components/storefront/Navbar";
 import HeroSection from "@/components/storefront/HeroSection";
 import Features from "@/components/storefront/Features";
+import ProcessSection from "@/components/storefront/ProcessSection";
+import Testimonials from "@/components/storefront/Testimonials";
+import SignatureMenu from "@/components/storefront/SignatureMenu";
+import DineInSection from "@/components/storefront/DineInSection";
+import FindUs from "@/components/storefront/FindUs";
 
 export default function LandingPage() {
   return (
@@ -8,6 +13,11 @@ export default function LandingPage() {
       <Navbar />
       <HeroSection />
       <Features />
+      <ProcessSection />
+      <Testimonials />
+      <SignatureMenu />
+      <DineInSection />
+      <FindUs />
 
     </main>
   );
