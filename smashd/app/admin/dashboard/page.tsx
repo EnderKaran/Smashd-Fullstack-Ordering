@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
   ShoppingBag, DollarSign, Users, 
-  Calendar as CalendarIcon, Loader2, RefreshCw, Sparkles, ChevronRight 
+  Calendar as CalendarIcon, Loader2, RefreshCw, Sparkles, ChevronRight, Wand2 
 } from "lucide-react";
 import { 
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -12,12 +12,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
-import { format, startOfMonth, parseISO } from "date-fns";
-import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 import Link from "next/link";
 
 export default function AdminDashboard() {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [aiLoading, setAiLoading] = useState(false);
   const [stats, setStats] = useState({ totalRevenue: 0, ordersToday: 0, averageCheck: 0 });
@@ -37,7 +35,6 @@ export default function AdminDashboard() {
       if (error) throw error;
       if (!orders) return;
 
-      // Temel istatistiklerin hesaplanmasi
       const today = new Date().toDateString();
       const totalRevenue = orders.reduce((acc, o) => acc + (o.total_price || 0), 0);
       const ordersToday = orders.filter(o => new Date(o.created_at).toDateString() === today).length;
@@ -45,24 +42,19 @@ export default function AdminDashboard() {
 
       setStats({ totalRevenue, ordersToday, averageCheck });
 
-      // Aylik satis trendinin hesaplanmasi
       const monthlySales = orders.reduce((acc: any, o) => {
         const month = format(new Date(o.created_at), 'MMM yyyy');
         acc[month] = (acc[month] || 0) + (o.total_price || 0);
         return acc;
       }, {});
 
-      // Grafik verisinin formatlanmasi ve siralanmasi
       const chartData = Object.keys(monthlySales).map(key => ({
         name: key,
         sales: monthlySales[key]
-      })).sort((a, b) => {
-        return new Date(a.name).getTime() - new Date(b.name).getTime();
-      });
+      })).sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime());
       
       setSalesData(chartData);
 
-      // En cok satan urunlerin analizi
       const burgerCounts: any = {};
       orders.forEach(order => {
         order.items?.forEach((item: any) => {
@@ -89,10 +81,12 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchAiInsight = async () => {
+  const fetchAiInsight = async (force = false) => {
     setAiLoading(true);
     try {
-      const response = await fetch('/api/ai-chef');
+      // Force parametresi true ise cache bypass edilir
+      const url = force ? '/api/ai-chef?refresh=true' : '/api/ai-chef';
+      const response = await fetch(url);
       const data = await response.json();
       if (data.analysis) {
         setAiInsight(data.analysis);
@@ -119,7 +113,6 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-[#FDFDFD] px-4 py-6 md:p-10 font-sans">
       
-      {/* Yonetim Paneli Ust Bilgi */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
         <div className="text-left">
           <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Management Dashboard</h1>
@@ -135,40 +128,63 @@ export default function AdminDashboard() {
             className="flex-1 md:flex-none bg-[#FF3B30] hover:bg-red-600 rounded-2xl px-6 h-12 font-bold flex gap-2"
           >
             <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-            <span>Refresh Data</span>
+            <span>Refresh All</span>
           </Button>
         </div>
       </header>
 
-      {/* Yapay Zeka Analiz Karti */}
+      {/* AI Analiz Karti ve Tavsiye Butonu */}
       <section className="mb-10">
         <div className="bg-gradient-to-br from-[#1A1A1A] to-[#333333] p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-10 opacity-10 group-hover:scale-110 transition-transform duration-700">
-            <Sparkles size={120} className="text-white" />
+          <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+            <Sparkles size={140} className="text-white" />
           </div>
+          
           <div className="relative z-10 text-left">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
-                <Sparkles size={18} className="text-white" />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center shadow-lg shadow-red-900/20">
+                  <Sparkles size={18} className="text-white" />
+                </div>
+                <h2 className="text-sm font-black text-white uppercase tracking-widest">AI Strategic Analysis</h2>
               </div>
-              <h2 className="text-sm font-black text-white uppercase tracking-widest">AI Strategic Analysis</h2>
-              {aiLoading && <Loader2 size={14} className="animate-spin text-gray-400" />}
+
+              <Button 
+                onClick={() => fetchAiInsight(true)}
+                disabled={aiLoading}
+                className="bg-white/10 hover:bg-red-500 text-white border border-white/10 rounded-2xl px-6 h-10 font-bold transition-all flex gap-2 active:scale-95 group/btn"
+              >
+                {aiLoading ? (
+                  <RefreshCw size={16} className="animate-spin" />
+                ) : (
+                  <Wand2 size={16} className="group-hover/btn:rotate-12 transition-transform" />
+                )}
+                <span className="text-xs uppercase tracking-wider font-black">Get New Advice</span>
+              </Button>
             </div>
-            <p className="text-lg md:text-xl text-gray-200 font-medium leading-relaxed max-w-4xl">
-              {aiInsight || "Gemini AI verileri analiz ediyor..."}
-            </p>
+
+            <div className="min-h-[60px] flex items-center">
+              {aiLoading && !aiInsight ? (
+                <div className="space-y-2 w-full">
+                  <div className="h-4 bg-white/5 rounded-full w-3/4 animate-pulse"></div>
+                  <div className="h-4 bg-white/5 rounded-full w-1/2 animate-pulse"></div>
+                </div>
+              ) : (
+                <p className="text-lg md:text-xl text-gray-200 font-medium leading-relaxed max-w-4xl italic">
+                  "{aiInsight || "Veriler analiz edilmeye hazir. Tavsiye almak icin butona tiklayin."}"
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Ana Metrikler */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-10">
         <StatCard title="Total Revenue" value={`$${stats.totalRevenue.toLocaleString()}`} icon={<DollarSign size={20} />} />
         <StatCard title="Orders Today" value={stats.ordersToday.toString()} icon={<ShoppingBag size={20} />} />
         <StatCard title="Average Check" value={`$${stats.averageCheck.toFixed(2)}`} icon={<Users size={20} />} />
       </div>
 
-      {/* Grafikler ve Performans Verileri */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
         <div className="lg:col-span-8 bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-gray-50">
           <h3 className="text-lg md:text-xl font-black text-gray-900 mb-8 text-left">Monthly Sales Trend</h3>
@@ -184,9 +200,7 @@ export default function AdminDashboard() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10 }} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                />
+                <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
                 <Area type="monotone" dataKey="sales" stroke="#FF3B30" strokeWidth={4} fill="url(#colorSales)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -203,10 +217,7 @@ export default function AdminDashboard() {
                   <span className="text-gray-400 font-bold whitespace-nowrap">{burger.sold} units</span>
                 </div>
                 <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-orange-400 rounded-full transition-all duration-1000" 
-                    style={{ width: burger.width }} 
-                  />
+                  <div className="h-full bg-orange-400 rounded-full transition-all duration-1000" style={{ width: burger.width }} />
                 </div>
               </div>
             ))}
@@ -214,7 +225,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Son Siparislerin Listelenmesi */}
       <section className="mt-8 md:mt-10 bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-gray-50">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg md:text-xl font-black text-gray-900 tracking-tight">Recent Orders</h3>

@@ -1,70 +1,51 @@
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { createClient } from "@/utils/supabase/server";
+import { ChatOpenAI } from "@langchain/openai";
+import { supabase } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 
-export async function GET() {
-  const supabase = createClient();
-  const model = new ChatGoogleGenerativeAI({
-    model: "gemini-flash-lite-latest",
-    apiKey: process.env.GOOGLE_API_KEY,
-    temperature: 0.7,
-  });
-
+export async function GET(request: Request) {
   try {
-    // Verileri çekiyoruz
-    const { data: orders, error } = await supabase
-      .from("orders")
-      .select("created_at, total_price, items")
-      .order("created_at", { ascending: false });
+    const { searchParams } = new URL(request.url);
+    const forceRefresh = searchParams.get('refresh') === 'true';
 
-    // Hata kontrolü için log ekledik
-    if (error) {
-      console.error("Supabase Hatasi:", error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    // 1. VERİ ÇEKME (Siparişler + Vardiyalar)
+    const [ordersRes, shiftsRes] = await Promise.all([
+      supabase.from("orders").select("total_price, created_at, items").limit(100),
+      supabase.from("staff_shifts").select("name, role, shift_start, shift_end")
+    ]);
 
-    // Gelen veriyi konsolda gör (Terminalde gozukur)
-    console.log("Cekilen Siparis Sayisi:", orders?.length);
+    const orders = ordersRes.data || [];
+    const shifts = shiftsRes.data || [];
 
-    if (!orders || orders.length === 0) {
-      return NextResponse.json({ 
-        analysis: "Veritabaninda siparis bulunamadi. Lutfen SQL Editor uzerinden veri eklediginizden ve RLS izinlerini actiginizdan emin olun." 
-      });
-    }
+    // 2. VERİ ÖZETLEME
+    const totalRevenue = orders.reduce((acc, o) => acc + (o.total_price || 0), 0);
+    const shiftSummary = shifts.map(s => `${s.name} (${s.role}): ${s.shift_start}-${s.shift_end}`).join(", ");
 
-    const productSales: any = {};
-    const dailyTraffic: any = {};
-    
-    orders.forEach((order) => {
-      const date = new Date(order.created_at).toLocaleDateString("tr-TR");
-      dailyTraffic[date] = (dailyTraffic[date] || 0) + 1;
-
-      order.items?.forEach((item: any) => {
-        productSales[item.name] = (productSales[item.name] || 0) + (item.quantity || 1);
-      });
+    // 3. MODEL VE PROMPT
+    const model = new ChatOpenAI({
+      apiKey: process.env.OPENROUTER_API_KEY,
+      modelName: "google/gemini-2.0-flash-001",
+      configuration: { baseURL: "https://openrouter.ai/api/v1" },
+      temperature: 0.8,
     });
 
     const prompt = `
-      Sen 'AI Chef' isimli bir restoran strateji uzmanisin. Bugun 10 Nisan 2026.
-      
-      ELINDEKI VERILER:
-      - Son satis trafigi (Gunluk): ${JSON.stringify(dailyTraffic)}
-      - En cok satan urunler ve adetleri: ${JSON.stringify(productSales)}
+      Sen 'Burger SaaS' dükkanının operasyonel yapay zekasısın. 
+      VERİLER:
+      - Son satış hacmi: $${totalRevenue.toFixed(2)}
+      - Bugünün personel vardiyaları: ${shiftSummary}
+      - Şu anki tarih/saat: 10 Nisan 2026, 14:00 (Cuma yoğunluğu başlıyor)
 
-      GOREVIN:
-      Bu verileri kullanarak bir 'Stratejik Tahmin Raporu' hazirla.
-      Onumuzdeki hafta sonu icin stok uyarisi ve personel tavsiyesi ver.
-      
-      Cevabi profesyonel, kisa ve aksiyon aldiracak netlikte (Turkce) ver.
+      GÖREVİN:
+      Satış trendini ve personel sayısını karşılaştır. 
+      Eğer akşam yoğunluğu bekleniyorsa ve personel azsa, spesifik isim vererek vardiya uzatma veya destek çağırma tavsiyesi ver.
+      Yanıtın Ender'e hitaben, samimi ve operasyonel bir dille (Türkçe) olsun. Tek veya iki cümle.
     `;
 
     const response = await model.invoke(prompt);
     const content = response.content as string;
 
     // Analizi kaydet
-    await supabase.from("ai_insights").insert([
-      { content: content, category: "strategic_prediction" }
-    ]);
+    await supabase.from("ai_insights").insert([{ content: content, category: 'shift_optimization' }]);
 
     return NextResponse.json({ analysis: content });
 
