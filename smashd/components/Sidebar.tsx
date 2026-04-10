@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, ShoppingCart, UtensilsCrossed, 
-  Package, Settings, LogOut, ChevronRight, X, Menu 
+  Package, Settings, LogOut, ChevronRight, X, Menu,
+  Calendar // 🚀 Vardiyalar için yeni ikon
 } from "lucide-react";
 
 const MENU_ITEMS = [
@@ -13,6 +14,7 @@ const MENU_ITEMS = [
   { name: "Orders", icon: ShoppingCart, href: "/admin/kitchen" },
   { name: "Menu", icon: UtensilsCrossed, href: "/admin/menu-management" },
   { name: "Inventory", icon: Package, href: "/admin/inventory" },
+  { name: "Shifts", icon: Calendar, href: "/admin/shifts" }, // ✨ Vardiya Sistemi buraya eklendi
   { name: "Settings", icon: Settings, href: "/admin/settings" },
 ];
 
@@ -20,14 +22,13 @@ export function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
-  // Sayfa değiştiğinde menüyü mobilde kapat
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
 
   return (
     <>
-      {/* 📱 Mobil Header & Trigger */}
+      {/* 📱 Mobil Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 px-6 flex items-center justify-between z-40">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-[#FF3B30] rounded-lg flex items-center justify-center text-white text-sm">🍔</div>
@@ -41,7 +42,7 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* 🌑 Overlay (Mobilde menü açıkken arka planı karartır) */}
+      {/* 🌑 Overlay */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 lg:hidden"
@@ -55,7 +56,7 @@ export function Sidebar() {
         lg:sticky lg:translate-x-0
         ${isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"}
       `}>
-        {/* Logo Alanı & Mobil Kapatma Butonu */}
+        {/* Logo Alanı */}
         <div className="p-8 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#FF3B30] rounded-xl flex items-center justify-center text-white text-xl">🍔</div>
@@ -64,10 +65,7 @@ export function Sidebar() {
               <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Management Pro</p>
             </div>
           </div>
-          <button 
-            onClick={() => setIsOpen(false)}
-            className="lg:hidden p-2 text-gray-400 hover:text-red-500"
-          >
+          <button onClick={() => setIsOpen(false)} className="lg:hidden p-2 text-gray-400 hover:text-red-500">
             <X size={20} />
           </button>
         </div>
@@ -94,7 +92,7 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Profil Alanı (Chef Ender) */}
+        {/* Profil Alanı */}
         <div className="p-6 border-t border-gray-50">
           <div className="bg-gray-50 p-4 rounded-[2rem] flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-orange-200 overflow-hidden border-2 border-white shadow-sm">
