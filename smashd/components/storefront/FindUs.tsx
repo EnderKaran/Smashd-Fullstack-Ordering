@@ -1,4 +1,5 @@
 import { MapPin, Clock, Instagram, Twitter } from "lucide-react";
+import findusimage from "@/public/images/findus-image.jpg";
 
 export default function FindUs() {
   return (
@@ -14,7 +15,7 @@ export default function FindUs() {
             <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white group-hover:scale-[1.02] transition-transform duration-500">
               {/* Buraya dükkanın gerçek lokasyonunu gösteren şık bir Google Maps statik görseli veya benzeri gelebilir */}
               <img 
-                src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80" 
+                src={findusimage.src} 
                 alt="Our Location" 
                 className="w-full h-[450px] object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700"
               />

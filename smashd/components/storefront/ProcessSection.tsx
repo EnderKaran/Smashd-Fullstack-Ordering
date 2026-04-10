@@ -1,4 +1,7 @@
 import { Grip, Sparkles, Flame } from "lucide-react";
+import meltimage from "@/public/images/products/classic-smash.jpg";
+import smashimage from "@/public/images/categories/burger-cat.jpg";
+import grindimage from "@/public/images/grind.jpg";
 
 export default function ProcessSection() {
   const steps = [
@@ -6,7 +9,7 @@ export default function ProcessSection() {
       id: "01",
       title: "The Grind",
       description: "We start with a custom blend of 100% premium Angus beef, ground fresh daily, never frozen, and perfectly seasoned.",
-      image: "https://images.unsplash.com/photo-1588168333986-5078d3ae3976?auto=format&fit=crop&w=600&q=80", // Geçici et/kıyma görseli
+      image: grindimage.src,
       icon: <Grip size={16} />,
       color: "bg-gray-900 text-white"
     },
@@ -14,7 +17,7 @@ export default function ProcessSection() {
       id: "02",
       title: "The Smash",
       description: "The meat ball hits the screaming hot griddle and is smashed flat with a spatula to create a caramelized, lacey crust.",
-      image: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=600&q=80", // Geçici ızgara/pişirme görseli
+      image: smashimage.src, 
       icon: <Sparkles size={16} />,
       color: "bg-yellow-400 text-black"
     },
@@ -22,7 +25,7 @@ export default function ProcessSection() {
       id: "03",
       title: "The Melt",
       description: "Two slices of American cheese are placed on top and trapped under steam to achieve the signature gooey melt.",
-      image: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=600&q=80", // Geçici erimiş peynirli burger görseli
+      image: meltimage.src, 
       icon: <Flame size={16} />,
       color: "bg-[#FF8A8A] text-white"
     }
