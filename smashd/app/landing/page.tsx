@@ -6,6 +6,7 @@ import Testimonials from "@/components/storefront/Testimonials";
 import SignatureMenu from "@/components/storefront/SignatureMenu";
 import DineInSection from "@/components/storefront/DineInSection";
 import FindUs from "@/components/storefront/FindUs";
+import CTASection from "@/components/storefront/CTASection";
 
 export default function LandingPage() {
   return (
@@ -18,6 +19,7 @@ export default function LandingPage() {
       <SignatureMenu />
       <DineInSection />
       <FindUs />
+      <CTASection />
 
     </main>
   );
